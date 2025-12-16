@@ -3,74 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Subhan Frame Extractor</title>
+    <title>Subhan Frame Tool</title>
     <style>
         :root {
-            --primary-color: #007bff;
-            --bg-color: #f4f4f9;
-            --text-color: #333;
+            --primary-color: #2563eb; /* Professional Blue */
+            --accent-color: #1d4ed8;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
-            padding: 20px;
+            padding: 0;
             display: flex;
-            flex-direction: column;
+            justify-content: center;
             align-items: center;
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
-        /* Profile Picture Styling */
-        .profile-section {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-bottom: 15px;
+        /* --- BACKGROUND LOGIC --- */
+        .background-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            /* This loads your profile picture as the background */
+            background-image: url('profile.jpg'); 
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
         }
 
-        .profile-pic {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%; /* Makes it round */
-            object-fit: cover; /* Ensures image doesn't stretch */
-            border: 4px solid var(--primary-color);
-            margin-bottom: 10px;
-            background-color: #ddd; /* Placeholder color if image fails */
+        /* This creates the dark tint (50-60%) over the photo */
+        .background-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7); /* 0.7 = 70% dark overlay */
+            backdrop-filter: blur(5px); /* Adds a slight blur to the background photo */
         }
 
-        .developer-name {
-            font-size: 0.9rem;
-            color: #666;
-            font-weight: 600;
+        /* --- MAIN CARD --- */
+        .container {
+            background: rgba(255, 255, 255, 0.95); /* Slight transparency */
+            padding: 40px 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            width: 85%;
+            max-width: 400px;
+            text-align: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Small Logo Circle */
+        .logo-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin: 0 auto 15px auto;
+            border: 3px solid var(--primary-color);
+            background-image: url('profile.jpg');
+            background-size: cover;
+            background-position: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        h1 {
+            font-size: 1.4rem;
+            margin: 0 0 5px 0;
+            color: #1f2937;
+        }
+
+        .subtitle {
+            font-size: 0.8rem;
+            color: #6b7280;
+            margin-bottom: 25px;
+            font-weight: 500;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
 
-        h1 {
-            font-size: 1.5rem;
-            margin-bottom: 20px;
-            text-align: center;
-            margin-top: 5px;
-        }
-
-        .container {
-            background: white;
-            padding: 30px 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
-        }
-
-        /* File Input Styling */
-        .file-upload {
+        /* File Upload Area */
+        .file-upload-wrapper {
             position: relative;
-            display: inline-block;
-            width: 100%;
             margin-bottom: 20px;
         }
 
@@ -79,76 +99,100 @@
         }
 
         .custom-file-upload {
-            border: 2px dashed #ccc;
-            display: block;
-            padding: 30px 10px;
+            border: 2px dashed #cbd5e1;
+            background-color: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px 15px;
             cursor: pointer;
-            border-radius: 8px;
-            font-weight: bold;
-            color: #666;
-            transition: all 0.3s;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            color: #64748b;
         }
 
-        .custom-file-upload:hover, .custom-file-upload:active {
+        .custom-file-upload:hover {
             border-color: var(--primary-color);
+            background-color: #eff6ff;
             color: var(--primary-color);
-            background-color: #eef6ff;
         }
 
-        /* Buttons */
+        .icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        /* Download Button */
         .btn {
             background-color: var(--primary-color);
             color: white;
             border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
+            padding: 15px 0;
+            border-radius: 10px;
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
             width: 100%;
-            margin-top: 10px;
+            margin-top: 15px;
             display: none;
+            box-shadow: 0 4px 6px rgba(37, 99, 235, 0.3);
+            transition: transform 0.2s;
         }
 
-        /* Preview Area */
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Result Area */
         #result-container {
             margin-top: 20px;
             display: none;
             flex-direction: column;
             align-items: center;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 20px;
         }
 
         #output-image {
             max-width: 100%;
             border-radius: 8px;
-            border: 1px solid #ddd;
-            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
+
+        #status-text {
+            color: var(--primary-color);
+            font-weight: 600;
+            margin: 10px 0;
+            display: none;
+        }
+
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="profile-section">
-            <img src="profile.jpg" alt="Developer" class="profile-pic" onerror="this.src='https://via.placeholder.com/100?text=Subhan'">
-            <span class="developer-name">Developed by Subhan</span>
-        </div>
+    <div class="background-layer">
+        <div class="background-overlay"></div>
+    </div>
 
-        <h1>Subhan Frame Extractor</h1>
+    <div class="container">
+        <div class="logo-circle"></div>
+        <h1>Video Frame Tool</h1>
+        <div class="subtitle">Developed by Subhan</div>
         
-        <div class="file-upload">
+        <div class="file-upload-wrapper">
             <label for="video-input" class="custom-file-upload">
-                Tap here to upload Video
+                <span class="icon">📹</span>
+                <span>Select Video File</span>
             </label>
             <input type="file" id="video-input" accept="video/*">
         </div>
 
-        <p id="status-text" style="font-size: 0.9rem; color: #666; display: none;">Processing...</p>
+        <p id="status-text">Processing Video...</p>
 
         <div id="result-container">
-            <h3>Last Frame:</h3>
             <img id="output-image" alt="Last Frame">
-            <button id="download-btn" class="btn">Download Image</button>
+            <button id="download-btn" class="btn">Download Frame</button>
         </div>
     </div>
 
@@ -169,25 +213,28 @@
             const file = event.target.files[0];
             if (!file) return;
 
+            // UI Reset
             resultContainer.style.display = 'none';
             downloadBtn.style.display = 'none';
             statusText.style.display = 'block';
-            statusText.textContent = "Loading video...";
+            statusText.textContent = "Loading Video Data...";
 
             const fileURL = URL.createObjectURL(file);
             video.src = fileURL;
         });
 
         video.addEventListener('loadedmetadata', function() {
-            statusText.textContent = "Seeking to end...";
+            statusText.textContent = "Seeking End Frame...";
             let seekTime = Math.max(0, video.duration - 0.1);
             video.currentTime = seekTime;
         });
 
         video.addEventListener('seeked', function() {
-            statusText.textContent = "Extracting frame...";
+            statusText.textContent = "Generating Image...";
+            
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
+            
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             const dataURL = canvas.toDataURL('image/jpeg');
 
