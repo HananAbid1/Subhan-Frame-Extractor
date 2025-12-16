@@ -23,15 +23,42 @@
             min-height: 100vh;
         }
 
+        /* Profile Picture Styling */
+        .profile-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .profile-pic {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%; /* Makes it round */
+            object-fit: cover; /* Ensures image doesn't stretch */
+            border: 4px solid var(--primary-color);
+            margin-bottom: 10px;
+            background-color: #ddd; /* Placeholder color if image fails */
+        }
+
+        .developer-name {
+            font-size: 0.9rem;
+            color: #666;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
         h1 {
             font-size: 1.5rem;
             margin-bottom: 20px;
             text-align: center;
+            margin-top: 5px;
         }
 
         .container {
             background: white;
-            padding: 20px;
+            padding: 30px 20px;
             border-radius: 12px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             width: 100%;
@@ -80,12 +107,7 @@
             cursor: pointer;
             width: 100%;
             margin-top: 10px;
-            display: none; /* Hidden by default */
-        }
-
-        .btn:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
+            display: none;
         }
 
         /* Preview Area */
@@ -96,22 +118,22 @@
             align-items: center;
         }
 
-        img {
+        #output-image {
             max-width: 100%;
             border-radius: 8px;
             border: 1px solid #ddd;
             margin-bottom: 15px;
-        }
-
-        /* Hidden elements for processing */
-        #video-element {
-            display: none;
         }
     </style>
 </head>
 <body>
 
     <div class="container">
+        <div class="profile-section">
+            <img src="profile.jpg" alt="Developer" class="profile-pic" onerror="this.src='https://via.placeholder.com/100?text=Subhan'">
+            <span class="developer-name">Developed by Subhan</span>
+        </div>
+
         <h1>Subhan Frame Extractor</h1>
         
         <div class="file-upload">
@@ -131,7 +153,7 @@
     </div>
 
     <canvas id="canvas" style="display:none;"></canvas>
-    <video id="video-element" preload="metadata" playsinline muted></video>
+    <video id="video-element" preload="metadata" playsinline muted style="display:none;"></video>
 
     <script>
         const videoInput = document.getElementById('video-input');
@@ -143,60 +165,38 @@
         const statusText = document.getElementById('status-text');
         const ctx = canvas.getContext('2d');
 
-        // 1. Handle File Selection
         videoInput.addEventListener('change', function(event) {
             const file = event.target.files[0];
             if (!file) return;
 
-            // Reset UI
             resultContainer.style.display = 'none';
             downloadBtn.style.display = 'none';
             statusText.style.display = 'block';
             statusText.textContent = "Loading video...";
 
-            // Create URL for the video file
             const fileURL = URL.createObjectURL(file);
             video.src = fileURL;
         });
 
-        // 2. Wait for Video Metadata (Duration)
         video.addEventListener('loadedmetadata', function() {
             statusText.textContent = "Seeking to end...";
-            
-            // Note: Seeking to exactly 'duration' sometimes returns black/empty.
-            // We seek to duration minus a tiny fraction (0.1s) to ensure we get an image.
-            // If the video is very short, we ensure we don't go below 0.
             let seekTime = Math.max(0, video.duration - 0.1);
-            
-            // Set current time to trigger the 'seeked' event
             video.currentTime = seekTime;
         });
 
-        // 3. Capture Frame after Seeking
         video.addEventListener('seeked', function() {
             statusText.textContent = "Extracting frame...";
-
-            // Set canvas dimensions to match video
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
-
-            // Draw the current video frame onto the canvas
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-            // Convert canvas to image URL
             const dataURL = canvas.toDataURL('image/jpeg');
 
-            // Show Result
             outputImage.src = dataURL;
             resultContainer.style.display = 'flex';
             downloadBtn.style.display = 'block';
             statusText.style.display = 'none';
-
-            // Clean up memory
-            // URL.revokeObjectURL(video.src); // Optional: keep commented if user wants to retry
         });
 
-        // 4. Handle Download
         downloadBtn.addEventListener('click', function() {
             const link = document.createElement('a');
             link.download = 'last-frame.jpg';
