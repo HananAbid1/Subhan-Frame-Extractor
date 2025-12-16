@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subhan Frame Extractor</title>
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --bg-color: #f4f4f9;
+            --text-color: #333;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        /* File Input Styling */
+        .file-upload {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .custom-file-upload {
+            border: 2px dashed #ccc;
+            display: block;
+            padding: 30px 10px;
+            cursor: pointer;
+            border-radius: 8px;
+            font-weight: bold;
+            color: #666;
+            transition: all 0.3s;
+        }
+
+        .custom-file-upload:hover, .custom-file-upload:active {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            background-color: #eef6ff;
+        }
+
+        /* Buttons */
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            display: none; /* Hidden by default */
+        }
+
+        .btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* Preview Area */
+        #result-container {
+            margin-top: 20px;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        img {
+            max-width: 100%;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            margin-bottom: 15px;
+        }
+
+        /* Hidden elements for processing */
+        #video-element {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Subhan Frame Extractor</h1>
+        
+        <div class="file-upload">
+            <label for="video-input" class="custom-file-upload">
+                Tap here to upload Video
+            </label>
+            <input type="file" id="video-input" accept="video/*">
+        </div>
+
+        <p id="status-text" style="font-size: 0.9rem; color: #666; display: none;">Processing...</p>
+
+        <div id="result-container">
+            <h3>Last Frame:</h3>
+            <img id="output-image" alt="Last Frame">
+            <button id="download-btn" class="btn">Download Image</button>
+        </div>
+    </div>
+
+    <canvas id="canvas" style="display:none;"></canvas>
+    <video id="video-element" preload="metadata" playsinline muted></video>
+
+    <script>
+        const videoInput = document.getElementById('video-input');
+        const video = document.getElementById('video-element');
+        const canvas = document.getElementById('canvas');
+        const outputImage = document.getElementById('output-image');
+        const downloadBtn = document.getElementById('download-btn');
+        const resultContainer = document.getElementById('result-container');
+        const statusText = document.getElementById('status-text');
+        const ctx = canvas.getContext('2d');
+
+        // 1. Handle File Selection
+        videoInput.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Reset UI
+            resultContainer.style.display = 'none';
+            downloadBtn.style.display = 'none';
+            statusText.style.display = 'block';
+            statusText.textContent = "Loading video...";
+
+            // Create URL for the video file
+            const fileURL = URL.createObjectURL(file);
+            video.src = fileURL;
+        });
+
+        // 2. Wait for Video Metadata (Duration)
+        video.addEventListener('loadedmetadata', function() {
+            statusText.textContent = "Seeking to end...";
+            
+            // Note: Seeking to exactly 'duration' sometimes returns black/empty.
+            // We seek to duration minus a tiny fraction (0.1s) to ensure we get an image.
+            // If the video is very short, we ensure we don't go below 0.
+            let seekTime = Math.max(0, video.duration - 0.1);
+            
+            // Set current time to trigger the 'seeked' event
+            video.currentTime = seekTime;
+        });
+
+        // 3. Capture Frame after Seeking
+        video.addEventListener('seeked', function() {
+            statusText.textContent = "Extracting frame...";
+
+            // Set canvas dimensions to match video
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            // Draw the current video frame onto the canvas
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // Convert canvas to image URL
+            const dataURL = canvas.toDataURL('image/jpeg');
+
+            // Show Result
+            outputImage.src = dataURL;
+            resultContainer.style.display = 'flex';
+            downloadBtn.style.display = 'block';
+            statusText.style.display = 'none';
+
+            // Clean up memory
+            // URL.revokeObjectURL(video.src); // Optional: keep commented if user wants to retry
+        });
+
+        // 4. Handle Download
+        downloadBtn.addEventListener('click', function() {
+            const link = document.createElement('a');
+            link.download = 'last-frame.jpg';
+            link.href = outputImage.src;
+            link.click();
+        });
+    </script>
+</body>
+</html>
