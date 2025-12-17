@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Subhan Frame Tool</title>
     
     <link rel="manifest" href="manifest.json">
@@ -12,21 +12,19 @@
     <style>
         :root {
             --primary-color: #2563eb;
-            --accent-color: #1d4ed8;
+            --bg-overlay: rgba(255, 255, 255, 0.95);
         }
 
         body {
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             margin: 0;
             padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            overflow-x: hidden;
+            height: 100vh;
+            overflow: hidden; /* Prevent scrolling body */
+            background-color: #f0f2f5;
         }
 
-        /* --- BACKGROUND LOGIC --- */
+        /* --- BACKGROUND --- */
         .background-layer {
             position: fixed;
             top: 0;
@@ -37,7 +35,6 @@
             background-image: url('profile.jpg'); 
             background-size: cover;
             background-position: center;
-            background-repeat: no-repeat;
         }
 
         .background-overlay {
@@ -46,22 +43,41 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(5px);
+            background-color: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
         }
 
-        /* --- MAIN CARD --- */
-        .container {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 40px 30px;
+        /* --- PAGE LAYOUT --- */
+        .app-content {
+            height: calc(100vh - 70px); /* Full height minus nav bar */
+            overflow-y: auto; /* Allow scrolling inside the page */
+            padding: 20px;
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Active Tab Logic */
+        .app-content.active {
+            display: flex;
+        }
+
+        /* --- CARD STYLING --- */
+        .card {
+            background: var(--bg-overlay);
+            padding: 30px 20px;
             border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            width: 85%;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            width: 100%;
             max-width: 400px;
             text-align: center;
-            position: relative;
-            z-index: 10;
+            margin-top: 20px;
+            margin-bottom: 20px;
         }
+
+        h1 { margin: 0; font-size: 1.5rem; color: #1f2937; }
+        h2 { font-size: 1.2rem; color: #374151; margin-bottom: 10px; }
+        p { color: #6b7280; line-height: 1.5; }
 
         .logo-circle {
             width: 80px;
@@ -72,112 +88,87 @@
             background-image: url('profile.jpg');
             background-size: cover;
             background-position: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
 
-        h1 {
-            font-size: 1.4rem;
-            margin: 0 0 5px 0;
-            color: #1f2937;
-        }
-
-        .subtitle {
-            font-size: 0.8rem;
-            color: #6b7280;
-            margin-bottom: 25px;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .file-upload-wrapper {
-            position: relative;
-            margin-bottom: 20px;
-        }
-
-        input[type="file"] {
-            display: none;
-        }
-
+        /* --- TOOL STYLES --- */
         .custom-file-upload {
             border: 2px dashed #cbd5e1;
-            background-color: #f8fafc;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 30px 15px;
-            cursor: pointer;
+            background: #f8fafc;
+            padding: 30px;
             border-radius: 12px;
-            transition: all 0.3s ease;
-            color: #64748b;
-        }
-
-        .custom-file-upload:hover {
-            border-color: var(--primary-color);
-            background-color: #eff6ff;
-            color: var(--primary-color);
-        }
-
-        .icon {
-            font-size: 24px;
-            margin-bottom: 8px;
-        }
-
-        .btn {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 15px 0;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            width: 100%;
             margin-top: 15px;
-            display: none;
-            box-shadow: 0 4px 6px rgba(37, 99, 235, 0.3);
-            transition: transform 0.2s;
+            cursor: pointer;
+            display: block;
+            color: #64748b;
+            font-weight: 500;
         }
+        
+        input[type="file"] { display: none; }
 
-        .btn:active {
-            transform: scale(0.98);
-        }
-
-        #result-container {
-            margin-top: 20px;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            border-top: 1px solid #e2e8f0;
-            padding-top: 20px;
-        }
-
-        #output-image {
+        #result-container img {
             max-width: 100%;
             border-radius: 8px;
+            margin-top: 15px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
-        #status-text {
-            color: var(--primary-color);
-            font-weight: 600;
-            margin: 10px 0;
-            display: none;
+        .btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px;
+            width: 100%;
+            border-radius: 8px;
+            font-size: 1rem;
+            margin-top: 15px;
+            cursor: pointer;
         }
 
-        /* Install Button (Hidden by default) */
+        /* --- BOTTOM NAVIGATION --- */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            height: 70px;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #94a3b8;
+            font-size: 0.8rem;
+            cursor: pointer;
+            width: 50%;
+        }
+
+        .nav-item.active {
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .nav-icon {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+
+        /* Install Button (Hidden) */
         #install-btn {
             display: none;
-            margin-bottom: 15px;
-            background-color: #10b981;
+            background: #10b981;
             color: white;
             border: none;
             padding: 10px;
             border-radius: 8px;
             width: 100%;
+            margin-bottom: 15px;
             font-weight: bold;
-            cursor: pointer;
         }
     </style>
 </head>
@@ -187,26 +178,53 @@
         <div class="background-overlay"></div>
     </div>
 
-    <div class="container">
-        <button id="install-btn">📲 Install App</button>
-
-        <div class="logo-circle"></div>
-        <h1>Video Frame Tool</h1>
-        <div class="subtitle">Developed by Subhan</div>
-        
-        <div class="file-upload-wrapper">
+    <div id="tab-home" class="app-content active">
+        <div class="card">
+            <button id="install-btn">📲 Install App</button>
+            <div class="logo-circle"></div>
+            <h1>Subhan Frame Tool</h1>
+            <p style="margin-top:5px; font-size:0.9rem;">Extract the last frame instantly</p>
+            
             <label for="video-input" class="custom-file-upload">
-                <span class="icon">📹</span>
-                <span>Select Video File</span>
+                📹 Tap to Select Video
             </label>
             <input type="file" id="video-input" accept="video/*">
+
+            <p id="status-text" style="display:none; color:#2563eb; font-weight:600; margin-top:10px;">Processing...</p>
+
+            <div id="result-container" style="display:none; flex-direction:column;">
+                <img id="output-image" alt="Last Frame">
+                <button id="download-btn" class="btn">Download Image</button>
+            </div>
         </div>
+    </div>
 
-        <p id="status-text">Processing Video...</p>
+    <div id="tab-about" class="app-content">
+        <div class="card">
+            <div class="logo-circle" style="width:100px; height:100px;"></div>
+            <h1>About the Developer</h1>
+            <p style="color: #2563eb; font-weight: bold;">Subhan</p>
+            
+            <div style="text-align: left; margin-top: 20px;">
+                <p><strong>App Version:</strong> 2.0 (PWA)</p>
+                <p><strong>Mission:</strong> Creating simple, powerful tools for mobile creators.</p>
+                <p><strong>Contact:</strong> I build software solutions hosted on GitHub.</p>
+            </div>
+            
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+                <p style="font-size: 0.8rem;">© 2024 Subhan Software</p>
+            </div>
+        </div>
+    </div>
 
-        <div id="result-container">
-            <img id="output-image" alt="Last Frame">
-            <button id="download-btn" class="btn">Download Frame</button>
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab('home')">
+            <span class="nav-icon">🏠</span>
+            <span>Home</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('about')">
+            <span class="nav-icon">👤</span>
+            <span>About</span>
         </div>
     </div>
 
@@ -214,13 +232,26 @@
     <video id="video-element" preload="metadata" playsinline muted style="display:none;"></video>
 
     <script>
+        // --- NAVIGATION LOGIC ---
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.app-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+            // Show selected tab
+            document.getElementById('tab-' + tabName).classList.add('active');
+            
+            // Highlight button
+            if(tabName === 'home') document.querySelectorAll('.nav-item')[0].classList.add('active');
+            if(tabName === 'about') document.querySelectorAll('.nav-item')[1].classList.add('active');
+        }
+
         // --- PWA INSTALL LOGIC ---
         let deferredPrompt;
         const installBtn = document.getElementById('install-btn');
 
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js')
-                .then(function() { console.log('Service Worker Registered'); });
+            navigator.serviceWorker.register('./sw.js');
         }
 
         window.addEventListener('beforeinstallprompt', (e) => {
@@ -229,15 +260,12 @@
             installBtn.style.display = 'block';
         });
 
-        installBtn.addEventListener('click', (e) => {
+        installBtn.addEventListener('click', () => {
             installBtn.style.display = 'none';
             deferredPrompt.prompt();
-            deferredPrompt.userChoice.then((choiceResult) => {
-                deferredPrompt = null;
-            });
         });
 
-        // --- VIDEO LOGIC ---
+        // --- VIDEO TOOL LOGIC ---
         const videoInput = document.getElementById('video-input');
         const video = document.getElementById('video-element');
         const canvas = document.getElementById('canvas');
@@ -252,30 +280,25 @@
             if (!file) return;
 
             resultContainer.style.display = 'none';
-            downloadBtn.style.display = 'none';
             statusText.style.display = 'block';
-            statusText.textContent = "Loading Video Data...";
+            statusText.textContent = "Loading...";
 
             const fileURL = URL.createObjectURL(file);
             video.src = fileURL;
         });
 
         video.addEventListener('loadedmetadata', function() {
-            statusText.textContent = "Seeking End Frame...";
             let seekTime = Math.max(0, video.duration - 0.1);
             video.currentTime = seekTime;
         });
 
         video.addEventListener('seeked', function() {
-            statusText.textContent = "Generating Image...";
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            const dataURL = canvas.toDataURL('image/jpeg');
-
-            outputImage.src = dataURL;
+            outputImage.src = canvas.toDataURL('image/jpeg');
+            
             resultContainer.style.display = 'flex';
-            downloadBtn.style.display = 'block';
             statusText.style.display = 'none';
         });
 
