@@ -1,5 +1,5 @@
 // Simple Service Worker for PWA
-const CACHE_NAME = 'subhan-tool-v1';
+const CACHE_NAME = 'subhan-tool-v1.1';
 const urlsToCache = [
   './',
   './index.html',
